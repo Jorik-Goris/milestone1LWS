@@ -1,0 +1,70 @@
+version: '3.8'
+networks:
+  mynetwork: {}
+
+volumes:
+  db-data: {}
+
+services:
+
+  elb:
+      image: haproxy
+      ports:
+          - "8085:8085"
+      volumes:
+          - ./haproxy:/usr/local/etc/haproxy
+      networks:
+        - mynetwork
+      depends_on:
+        - app-1
+        - app-2
+        - app-3
+      command: sh -c "sleep 5 && haproxy -f /usr/local/etc/haproxy/haproxy.cfg"
+
+  app-1:
+    container_name: 1-contapa2-m1-jg
+    build:
+      context: ./apache/
+      dockerfile: dockerfile
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - mynetwork
+
+  app-2:
+    container_name: 2-contapa2-m1-jg
+    build:
+      context: ./apache/
+      dockerfile: dockerfile
+    ports:
+      - "8082:80"
+    depends_on:
+      - mysql
+    networks:
+      - mynetwork
+
+  app-3:
+    container_name: 3-contapa2-m1-jg
+    build:
+      context: ./apache/
+      dockerfile: dockerfile
+    ports:
+      - "8083:80"
+    depends_on:
+      - mysql
+    networks:
+      - mynetwork
+
+
+  mysql:
+    container_name: contsql-m1-jg
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: abc123!
+      MYSQL_DATABASE: mydb
+    volumes:
+      - /home/jorikgoris/mysql/data:/var/lib/mysql
+    networks:
+      - mynetwork
